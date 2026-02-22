@@ -8,6 +8,8 @@ namespace GamecatalogAPI.Controllers
     [ApiController]
     public class GamesController : ControllerBase
     {
+        //Get all games
+        [HttpGet]
         public IActionResult GetAll()
         {
             var games = new List<Game>
