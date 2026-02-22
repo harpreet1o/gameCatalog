@@ -1,7 +1,6 @@
 ﻿namespace GamecatalogAPI.Models.DTO;
 
-public record GameDto(
-    Guid Id,
+public record AddGameRequestDto(
     string Name,
     string Description,
     decimal Price,
