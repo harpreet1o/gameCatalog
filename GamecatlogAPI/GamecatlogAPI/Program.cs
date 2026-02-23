@@ -2,6 +2,7 @@ using Scalar.AspNetCore;
 using GamecatalogAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using GamecatalogAPI.Repositores;
+using GamecatalogAPI.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,12 @@ builder.Services.AddDbContext<GamesDBContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("GameCatalogConnection")));
 
 builder.Services.AddScoped<IGamerepository, SQLGameRepository>();
+
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<AutoMapperProfile>();
+}, AppDomain.CurrentDomain.GetAssemblies());
+
 
 var app = builder.Build();
 
