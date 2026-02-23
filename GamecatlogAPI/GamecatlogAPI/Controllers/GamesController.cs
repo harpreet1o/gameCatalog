@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using GamecatalogAPI.Models.DTO;
 using GamecatalogAPI.Models.Domain;
-using System.Reflection.Metadata.Ecma335;
+using Microsoft.EntityFrameworkCore;
+using GamecatalogAPI.Repositores;
 
 namespace GamecatalogAPI.Controllers
 {
@@ -10,18 +11,20 @@ namespace GamecatalogAPI.Controllers
     [ApiController]
     public class GamesController : ControllerBase
     {
-        public readonly GamesDBContext DbContext;
-        public GamesController(GamesDBContext dbContext)
+        private readonly GamesDBContext DbContext;
+        private readonly IGamerepository gameRepository;
+        public GamesController(GamesDBContext dbContext, IGamerepository gameRepository)
         {
             this.DbContext = dbContext;
+            this.gameRepository = gameRepository;
         }
 
         //Get all games
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAllAsync()
         {
             //Get data from Database - domain models
-            var games = DbContext.Game.ToList();
+            var games = await gameRepository.GetAllAsync();
             // map domain models to DTOs
             //return DTOs
             var gameDtos = games.Select(game => new GameDto
@@ -38,10 +41,10 @@ namespace GamecatalogAPI.Controllers
         //get single Game by Id
         [HttpGet]
         [Route("id:Guid")]
-        public IActionResult GetById([FromRoute] Guid id)
+        public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
             //var game = DbContext.Game.Find(id);
-            var game = DbContext.Game.FirstOrDefault(x => x.Id == id);
+            var game = await DbContext.Game.FirstOrDefaultAsync(x => x.Id == id);
             if (game == null)
             {
                 return NotFound();
@@ -61,7 +64,7 @@ namespace GamecatalogAPI.Controllers
         }
         // Post To create new game
         [HttpPost]
-        public IActionResult Create([FromBody] AddGameRequestDto addgameDto)
+        public async Task <IActionResult> Create([FromBody] AddGameRequestDto addgameDto)
         {
             // 1. Map DTO to Domain Model (Class)
             var game = new Game
@@ -75,8 +78,8 @@ namespace GamecatalogAPI.Controllers
             };
 
             // Save to Database
-            DbContext.Game.Add(game);
-            DbContext.SaveChanges();
+            await DbContext.Game.AddAsync(game);
+            await DbContext.SaveChangesAsync();
 
             //sending the response back aswell to avoid the client having to make another GET request to fetch the created game details
             var gameDto = new GameDto(
@@ -95,9 +98,9 @@ namespace GamecatalogAPI.Controllers
         //update existing game
         [HttpPut]
         [Route("id:guid")]
-        public IActionResult Update([FromRoute] Guid id, [FromBody] UpdateGameRequestDto updategamerequestdto)
+        public async Task <IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateGameRequestDto updategamerequestdto)
         {
-            var gameDomainModel = DbContext.Game.FirstOrDefault(x => x.Id == id);
+            var gameDomainModel =await DbContext.Game.FirstOrDefaultAsync(x => x.Id == id);
             if (gameDomainModel == null)
             {
                 return NotFound();
@@ -109,7 +112,7 @@ namespace GamecatalogAPI.Controllers
             gameDomainModel.Genre = updategamerequestdto.Genre;
             gameDomainModel.GameImageURL = updategamerequestdto.GameImageURL;
             //save changes to database
-            DbContext.SaveChanges();
+            await DbContext.SaveChangesAsync();
             // convert the domain model to dto
             var gameDto = new GameDto
                 (
@@ -126,16 +129,16 @@ namespace GamecatalogAPI.Controllers
         // delete existing game
         [HttpDelete]
         [Route("id:guid")]
-        public IActionResult Delete([FromRoute] Guid id)
+        public async Task <IActionResult> Delete([FromRoute] Guid id)
         {
-            var gameDomainModel = DbContext.Game.FirstOrDefault(x => x.Id == id);
+            var gameDomainModel = await DbContext.Game.FirstOrDefaultAsync(x => x.Id == id);
             if (gameDomainModel == null)
             {
                 return NotFound();
             }
-            //remove the game from database
+            //remove the game from database and remove doesn't have an async method 
             DbContext.Game.Remove(gameDomainModel);
-            DbContext.SaveChanges();
+            await DbContext.SaveChangesAsync();
             // return deleted game back
             // map domain model to DTO
             var regionDto = new GameDto

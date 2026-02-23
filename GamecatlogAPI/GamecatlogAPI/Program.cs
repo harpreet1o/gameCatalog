@@ -1,6 +1,8 @@
 using Scalar.AspNetCore;
 using GamecatalogAPI.Data;
 using Microsoft.EntityFrameworkCore;
+using GamecatalogAPI.Repositores;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -10,7 +12,9 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<GamesDBContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("GameCatalogConnection")));
+options.UseSqlServer(builder.Configuration.GetConnectionString("GameCatalogConnection")));
+
+builder.Services.AddScoped<IGamerepository, SQLGameRepository>();
 
 var app = builder.Build();
 
