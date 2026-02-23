@@ -44,7 +44,7 @@ namespace GamecatalogAPI.Controllers
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
             //var game = DbContext.Game.Find(id);
-            var game = await DbContext.Game.FirstOrDefaultAsync(x => x.Id == id);
+            var game = await gameRepository.GetByIdAsync(id);
             if (game == null)
             {
                 return NotFound();
@@ -67,7 +67,7 @@ namespace GamecatalogAPI.Controllers
         public async Task <IActionResult> Create([FromBody] AddGameRequestDto addgameDto)
         {
             // 1. Map DTO to Domain Model (Class)
-            var game = new Game
+            var gameDomainModel = new Game
             {
                 Id = Guid.NewGuid(),
                 Name = addgameDto.Name,
@@ -78,17 +78,16 @@ namespace GamecatalogAPI.Controllers
             };
 
             // Save to Database
-            await DbContext.Game.AddAsync(game);
-            await DbContext.SaveChangesAsync();
+            gameDomainModel = await gameRepository.CreateAsync(gameDomainModel);
 
             //sending the response back aswell to avoid the client having to make another GET request to fetch the created game details
             var gameDto = new GameDto(
-                game.Id,
-                game.Name,
-                game.Description,
-                game.Price,
-                game.Genre,
-                game.GameImageURL
+                gameDomainModel.Id,
+                gameDomainModel.Name,
+                gameDomainModel.Description,
+                gameDomainModel.Price,
+                gameDomainModel.Genre,
+                gameDomainModel.GameImageURL
             );
 
 
@@ -100,19 +99,21 @@ namespace GamecatalogAPI.Controllers
         [Route("id:guid")]
         public async Task <IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateGameRequestDto updategamerequestdto)
         {
-            var gameDomainModel =await DbContext.Game.FirstOrDefaultAsync(x => x.Id == id);
+            //Map DTO to domain Model
+            var gameDomainModel = new Game
+            {
+                Name = updategamerequestdto.Name,
+                Description = updategamerequestdto.Description,
+                Price = updategamerequestdto.Price,
+                Genre = updategamerequestdto.Genre,
+                GameImageURL = updategamerequestdto.GameImageURL
+            };
+            gameDomainModel = await gameRepository.UpdateAsync(id, gameDomainModel);
             if (gameDomainModel == null)
             {
                 return NotFound();
             }
-            //update the properties of the existing game with the new values from the DTO
-            gameDomainModel.Name = updategamerequestdto.Name;
-            gameDomainModel.Description = updategamerequestdto.Description;
-            gameDomainModel.Price = updategamerequestdto.Price;
-            gameDomainModel.Genre = updategamerequestdto.Genre;
-            gameDomainModel.GameImageURL = updategamerequestdto.GameImageURL;
-            //save changes to database
-            await DbContext.SaveChangesAsync();
+          
             // convert the domain model to dto
             var gameDto = new GameDto
                 (
@@ -131,17 +132,14 @@ namespace GamecatalogAPI.Controllers
         [Route("id:guid")]
         public async Task <IActionResult> Delete([FromRoute] Guid id)
         {
-            var gameDomainModel = await DbContext.Game.FirstOrDefaultAsync(x => x.Id == id);
+            var gameDomainModel = await gameRepository.DeleteAsync(id);
             if (gameDomainModel == null)
             {
                 return NotFound();
             }
-            //remove the game from database and remove doesn't have an async method 
-            DbContext.Game.Remove(gameDomainModel);
-            await DbContext.SaveChangesAsync();
             // return deleted game back
             // map domain model to DTO
-            var regionDto = new GameDto
+            var gameDto = new GameDto
                 (
                     gameDomainModel.Id,
                     gameDomainModel.Name,
@@ -150,7 +148,7 @@ namespace GamecatalogAPI.Controllers
                     gameDomainModel.Genre,
                     gameDomainModel.GameImageURL
                 );
-            return Ok();
+            return Ok(gameDto);
         }
 
     }
