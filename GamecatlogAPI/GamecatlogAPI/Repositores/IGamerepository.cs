@@ -8,6 +8,10 @@ namespace GamecatalogAPI.Repositores
         Task<Game?>GetByIdAsync(Guid id);
 
         Task<Game?> CreateAsync(Game game);
+        
+        Task<Game?> UpdateAsync(Guid id, Game game);
+
+        Task<Game?> DeleteAsync(Guid id);
 
 
     }
