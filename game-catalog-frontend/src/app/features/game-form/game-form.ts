@@ -45,6 +45,7 @@ export class GameForm implements OnInit {
       error: (err) => console.error('Error fetching game details:', err)
     });
   }
+  
 
   onSubmit() {
     if (this.gameForm.valid) {
