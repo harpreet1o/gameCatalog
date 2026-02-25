@@ -1,3 +1,4 @@
+
 <div class="container mt-4">
   <div class="row">
     @for (game of games(); track game.id) {
@@ -20,7 +21,9 @@
               <span class="h5 mb-0">${{ game.price }}</span>
               <div class="btn-group">
                 <button class="btn btn-sm btn-outline-secondary">Details</button>
-                <button class="btn btn-sm btn-primary">Edit</button>
+                <button class="btn btn-sm btn-primary"
+                [routerLink]="['/edit', game.id]">
+                Edit</button>
               </div>
             </div>
           </div>

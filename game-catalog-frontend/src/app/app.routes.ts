@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
-import { Home } from './home/home';
-// import { GameEdit } from './game-edit/game-edit';
+import { Home } from './features/home/home';
+import { GameForm } from './features/game-form/game-form';
+
 
 export const routes: Routes = [
-  { path: '', component: Home },           // Default page
-//   { path: 'edit/:id', component: GameEdit }, // Edit page
-//   { path: 'add', component: GameEdit }      // Add page (reusing the same component)
+  { path: '', component: Home },         
+  { path: 'edit/:id', component: GameForm }, 
+  { path: 'add', component: GameForm }      
 ];

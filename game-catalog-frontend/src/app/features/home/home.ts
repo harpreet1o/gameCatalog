@@ -1,5 +1,6 @@
 import { Component, signal, OnInit, inject } from '@angular/core'; 
 import { HttpClient } from '@angular/common/http'; 
+import { RouterLink } from '@angular/router';
 
 
 export interface Game {
@@ -10,14 +11,16 @@ export interface Game {
   genre: string;
   gameImageURL: string;  
 }
+
 @Component({
   selector: 'app-home',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './home.html',
 })
 
 export class Home implements OnInit {
-  private http = inject(HttpClient); // "Inject" the tool to make web calls
+  private http = inject(HttpClient); 
   games = signal<Game[]>([]);
 
   ngOnInit() {

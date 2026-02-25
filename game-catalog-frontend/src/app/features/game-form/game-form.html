@@ -1,0 +1,48 @@
+<div class="container mt-5">
+  <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+    <div class="card-header text-white" [class.bg-dark]="!isEditMode()" [class.bg-primary]="isEditMode()">
+      <h3 class="mb-0">{{ isEditMode() ? 'Edit Game' : 'Add New Game' }}</h3>
+    </div>
+
+    <div class="card-body">
+      <form [formGroup]="gameForm" (ngSubmit)="onSubmit()">
+        
+        <div class="mb-3">
+          <label class="form-label">Game Name</label>
+          <input type="text" formControlName="name" class="form-control" placeholder="Enter name">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Genre</label>
+          <input type="text" formControlName="genre" class="form-control" placeholder="e.g. RPG">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Price</label>
+          <input type="number" formControlName="price" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea formControlName="description" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Image URL</label>
+          <input type="text" formControlName="gameImageURL" class="form-control" placeholder="Enter image URL">
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" routerLink="/">Cancel</button>
+          
+          <button type="submit" class="btn" 
+                  [class.btn-primary]="!isEditMode()" 
+                  [class.btn-success]="isEditMode()"
+                  [disabled]="gameForm.invalid">
+            {{ isEditMode() ? 'Update Game' : 'Save Game' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
