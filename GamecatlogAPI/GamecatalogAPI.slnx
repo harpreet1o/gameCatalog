@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="GameCatalogAPI.Tests/GameCatalogAPI.Tests.csproj" Id="ed4af162-3c6b-415e-b202-3349cb6d3e23" />
   <Project Path="GamecatlogAPI/GamecatalogAPI.csproj" />
 </Solution>
