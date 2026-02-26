@@ -1,7 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { GameService } from '../../core/services/game.services'; 
+import { CreateGameDto, UpdateGameDto } from '../../core/models/game.model';
 
 @Component({
   selector: 'app-game-form',
@@ -10,11 +11,10 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
   templateUrl: './game-form.html',
 })
 export class GameForm implements OnInit {
-  private http = inject(HttpClient);
+  private gameService = inject(GameService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute); // Needed to read the ID from URL
+  private route = inject(ActivatedRoute);
 
-  apiUrl = 'https://localhost:7187/api/Games';
   isEditMode = signal(false);
   gameId: string | null = null;
 
@@ -27,50 +27,43 @@ export class GameForm implements OnInit {
   });
 
   ngOnInit() {
-    // Check if there's an 'id' in the route params
     this.gameId = this.route.snapshot.paramMap.get('id');
     
     if (this.gameId) {
       this.isEditMode.set(true);
-      this.fetchGameData(this.gameId);
+      this.loadGameData(this.gameId);
     }
   }
 
-  fetchGameData(id: string) {
-    this.http.get<any>(`${this.apiUrl}/${id}`).subscribe({
-      next: (game) => {
-        // patchValue fills the form with the existing data
-        this.gameForm.patchValue(game);
-      },
+  private loadGameData(id: string) {
+    this.gameService.getGameById(id).subscribe({
+      next: (game) => this.gameForm.patchValue(game),
       error: (err) => console.error('Error fetching game details:', err)
     });
   }
-  
 
   onSubmit() {
-    if (this.gameForm.valid) {
-      const formValue = this.gameForm.getRawValue();
-      
-      const payload = {
-        ...formValue,
-        gameImageURL: formValue.gameImageURL?.trim() ? formValue.gameImageURL : null
-      };
+    if (this.gameForm.invalid) return;
 
-      if (this.isEditMode()) {
-        // EDIT MODE: Use PUT
-        this.http.put(`${this.apiUrl}/${this.gameId}`, payload)
-          .subscribe({
-            next: () => this.router.navigate(['/']),
-            error: (err) => console.error('Error updating game:', err)
-          });
-      } else {
-        // ADD MODE: Use POST
-        this.http.post(this.apiUrl, payload)
-          .subscribe({
-            next: () => this.router.navigate(['/']),
-            error: (err) => console.error('Error adding game:', err)
-          });
-      }
+    const formValue = this.gameForm.getRawValue();
+    
+    // Clean the URL: if it's just whitespace, set to null
+    const gameImageURL = formValue.gameImageURL?.trim() || null;
+
+    if (this.isEditMode() && this.gameId) {
+      const updateData: UpdateGameDto = { ...formValue, id: this.gameId, gameImageURL };
+      
+      this.gameService.updateGame(updateData).subscribe({
+        next: () => this.router.navigate(['/']),
+        error: (err) => console.error('Update failed:', err)
+      });
+    } else {
+      const newData: CreateGameDto = { ...formValue, gameImageURL };
+      
+      this.gameService.createGame(newData).subscribe({
+        next: () => this.router.navigate(['/']),
+        error: (err) => console.error('Creation failed:', err)
+      });
     }
   }
 }

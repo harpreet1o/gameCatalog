@@ -10,7 +10,6 @@ import { Header } from './components/header/header';
   <main>
  <router-outlet />
   <main>`,
-  styleUrl: './app.scss',
 })
 export class App {
   protected readonly title = signal('game-catalog-frontend');
