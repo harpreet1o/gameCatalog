@@ -7,9 +7,13 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class GameService {
+  // we dont use the let or const here we use the readonly to not make it change and private cause these are injectable but dont need to be accessed outside of this class.
   private http = inject(HttpClient);
   private readonly apiUrl = 'https://localhost:7187/api/Games';
 
+  // we create routes here and don't use async cause we get observable not the promise. 
+
+  // we receive an array of games here  
   getGames(search?: string): Observable<Game[]> {
     const url = search ? `${this.apiUrl}?search=${search}` : this.apiUrl;
     return this.http.get<Game[]>(url);
@@ -19,7 +23,7 @@ export class GameService {
     return this.http.get<Game>(`${this.apiUrl}/${id}`);
   }
 
-  // Type-safe Create method
+  
   createGame(game: CreateGameDto): Observable<Game> {
     return this.http.post<Game>(this.apiUrl, game);
   }

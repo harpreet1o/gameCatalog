@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { GameService } from '../../core/services/game.services'; 
+import { GameService } from '../../core/services/game.service'; 
 import { CreateGameDto, UpdateGameDto } from '../../core/models/game.model';
 
 @Component({
