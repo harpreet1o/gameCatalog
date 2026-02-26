@@ -1,5 +1,4 @@
 ﻿using Moq;
-using Xunit;
 using Microsoft.AspNetCore.Mvc;
 using GamecatalogAPI.Controllers;
 using GamecatalogAPI.Repositores;
