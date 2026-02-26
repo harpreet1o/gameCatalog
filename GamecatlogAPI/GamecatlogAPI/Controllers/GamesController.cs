@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using GamecatalogAPI.Models.DTO;
+﻿using AutoMapper;
 using GamecatalogAPI.Models.Domain;
+using GamecatalogAPI.Models.DTO;
 using GamecatalogAPI.Repositores;
-using AutoMapper;   
+using Microsoft.AspNetCore.Mvc;
 
 namespace GamecatalogAPI.Controllers
 {
@@ -12,7 +12,7 @@ namespace GamecatalogAPI.Controllers
     {
         private readonly IGamerepository gameRepository;
         private readonly IMapper mapper;
-        public GamesController( IGamerepository gameRepository, IMapper mapper)
+        public GamesController(IGamerepository gameRepository, IMapper mapper)
         {
 
             this.gameRepository = gameRepository;
@@ -43,7 +43,7 @@ namespace GamecatalogAPI.Controllers
         }
         // Post To create new game
         [HttpPost]
-        public async Task <IActionResult> Create([FromBody] AddGameRequestDto addgameRequestDto)
+        public async Task<IActionResult> Create([FromBody] AddGameRequestDto addgameRequestDto)
         {
             // 1. Map DTO to Domain Model (Class)
             var gameDomainModel = mapper.Map<Game>(addgameRequestDto);
@@ -62,7 +62,7 @@ namespace GamecatalogAPI.Controllers
         //update existing game
         [HttpPut]
         [Route("{id:Guid}")]
-        public async Task <IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateGameRequestDto updategamerequestdto)
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateGameRequestDto updategamerequestdto)
         {
             //Map DTO to domain Model
             var gameDomainModel = mapper.Map<Game>(updategamerequestdto);
@@ -81,7 +81,7 @@ namespace GamecatalogAPI.Controllers
         // delete existing game
         [HttpDelete]
         [Route("{id:Guid}")]
-        public async Task <IActionResult> Delete([FromRoute] Guid id)
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var gameDomainModel = await gameRepository.DeleteAsync(id);
             if (gameDomainModel == null)
