@@ -3,7 +3,7 @@ namespace GamecatalogAPI.Repositores
 {
     public interface IGamerepository
     {
-        Task<List<Game>> GetAllAsync();
+        Task<List<Game>> GetAllAsync(string? serach = null);
 
         Task<Game?>GetByIdAsync(Guid id);
 

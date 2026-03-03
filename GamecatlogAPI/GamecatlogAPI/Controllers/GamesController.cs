@@ -21,10 +21,10 @@ namespace GamecatalogAPI.Controllers
 
         //Get all games
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAllAsync([FromQuery] string? search)
         {
             //Get data from Database - domain models
-            var gamesDomain = await gameRepository.GetAllAsync();
+            var gamesDomain = await gameRepository.GetAllAsync(search);
             return Ok(mapper.Map<List<GameDto>>(gamesDomain));
         }
         //get single Game by Id

@@ -31,9 +31,16 @@ namespace GamecatalogAPI.Repositores
             return existingGame;
         }
 
-        public async Task<List<Game>> GetAllAsync()
+        public async Task<List<Game>> GetAllAsync(string? search = null)
         {
-         return await dbContext.Game.ToListAsync();
+            var games = dbContext.Game.AsQueryable();
+            if (!string.IsNullOrEmpty(search))
+            {
+                games = games.Where(x => x.Name.Contains(search) || x.Genre.Contains(search));
+
+            }
+            
+            return await games.ToListAsync();
         }
 
         public async Task<Game?> GetByIdAsync(Guid id)

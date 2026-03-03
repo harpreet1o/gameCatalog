@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Game, CreateGameDto, UpdateGameDto } from '../models/game.model'; // Import our new types
 import { Observable } from 'rxjs';
 
@@ -15,10 +15,13 @@ export class GameService {
 
   // we receive an array of games here  
   getGames(search?: string): Observable<Game[]> {
-    const url = search ? `${this.apiUrl}?search=${search}` : this.apiUrl;
-    return this.http.get<Game[]>(url);
-  }
+    let params = new HttpParams();
+    if (search) {
+      params = params.set('search', search);
+    }
 
+    return this.http.get<Game[]>(this.apiUrl, { params });
+  }
   getGameById(id: string): Observable<Game> {
     return this.http.get<Game>(`${this.apiUrl}/${id}`);
   }

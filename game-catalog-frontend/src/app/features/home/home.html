@@ -1,6 +1,42 @@
-
 <div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col-md-6 offset-md-3 position-relative">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0">
+           🔍
+        </span>
+        <input 
+          type="text" 
+          #searchInput
+          class="form-control border-start-0" 
+          placeholder="Start typing to find a game or genre..."
+          (input)="onType(searchInput.value)">
+      </div>
+
+      @if (suggestions().length > 0) {
+        <ul class="list-group position-absolute w-100 shadow-lg mt-1" 
+            style="z-index: 1050; left: 0; padding: 0 12px;">
+          @for (s of suggestions(); track s.id){ // using tracking of id similar to we use key in react
+            <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
+                (click)="selectGame(s); searchInput.value = s.name"
+                style="cursor: pointer;">
+              <div>
+                <strong>{{ s.name }}</strong>
+                <div class="small text-muted">{{ s.genre }}</div>
+              </div>
+              <span class="badge bg-light text-dark border">${{ s.price }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
   <div class="row">
+    @for (game of games(); track game.id) {
+       }
+  </div>
+</div><div class="row">
     @for (game of games(); track game.id) {
       <div class="col-md-4 mb-4">
         <div class="card h-100 shadow-sm">
@@ -9,7 +45,7 @@
           
           <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between align-items-start">
-              <h5 class="card-title">{{ game.name }}</h5>
+               <h5 class="card-title">{{ game.name }}</h5>
               <span class="badge bg-primary">{{ game.genre }}</span>
             </div>
             
@@ -35,4 +71,3 @@
       </div>
     }
   </div>
-</div>
