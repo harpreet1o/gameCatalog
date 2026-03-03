@@ -2,9 +2,7 @@
   <div class="row mb-4">
     <div class="col-md-6 offset-md-3 position-relative">
       <div class="input-group">
-        <span class="input-group-text bg-white border-end-0">
-           🔍
-        </span>
+        <span class="input-group-text bg-white border-end-0">🔍</span>
         <input 
           type="text" 
           #searchInput
@@ -16,7 +14,7 @@
       @if (suggestions().length > 0) {
         <ul class="list-group position-absolute w-100 shadow-lg mt-1" 
             style="z-index: 1050; left: 0; padding: 0 12px;">
-          @for (s of suggestions(); track s.id){ // using tracking of id similar to we use key in react
+          @for (s of suggestions(); track s.id){
             <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
                 (click)="selectGame(s); searchInput.value = s.name"
                 style="cursor: pointer;">
@@ -29,6 +27,54 @@
           }
         </ul>
       }
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6 offset-md-3 d-flex justify-content-between align-items-center">
+      <h5 class="text-muted mb-0">Catalog</h5>
+      
+    <div class="d-flex align-items-center gap-2">
+  <div ngbDropdown class="d-inline-block">
+    <button 
+      type="button"
+      class="btn btn-sm btn-outline-secondary shadow-sm"
+      ngbDropdownToggle>
+      Sort by: <strong>{{ sortBy() }}</strong>
+    </button>
+
+    <div ngbDropdownMenu class="shadow border-0">
+      <button
+        ngbDropdownItem
+        class="d-flex justify-content-between align-items-center"
+        [class.active]="sortBy() === 'Name'"
+        (click)="toggleSort('Name')">
+        Name
+        @if (sortBy() === 'Name') { <strong class="ms-2">✓</strong> }
+      </button>
+
+      <button
+        ngbDropdownItem
+        class="d-flex justify-content-between align-items-center"
+        [class.active]="sortBy() === 'Price'"
+        (click)="toggleSort('Price')">
+        Price
+        @if (sortBy() === 'Price') { <strong class="ms-2">✓</strong> }
+      </button>
+    </div>
+  </div>
+
+  <button 
+    type="button"
+    class="btn btn-sm btn-outline-secondary shadow-sm" 
+    (click)="toggleSort(sortBy())">
+    @if (isDescending()) {
+      <span class="fw-bold">Desc ↓</span>
+    } @else {
+      <span class="fw-bold">Asc ↑</span>
+    }
+  </button>
+</div>
     </div>
   </div>
 
@@ -87,4 +133,4 @@
     Next
   </button>
 </div>
-  </div>
+</div>

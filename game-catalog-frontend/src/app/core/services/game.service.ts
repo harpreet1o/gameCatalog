@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Game, CreateGameDto, UpdateGameDto } from '../models/game.model'; // Import our new types
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -14,19 +14,31 @@ export class GameService {
   // we create routes here and don't use async cause we get observable not the promise. 
 
   // we receive an array of games here  
-  getGames(search?: string, pageNumber?: number, pageSize?: number): Observable<Game[]> {
-    console.log('Fetching games with search:', search, 'page:', pageNumber, 'pageSize:', pageSize);
-    let params = new HttpParams();
-    if (search) {
-      params = params.set('search', search);
-    }
-    if (pageNumber !== undefined && pageSize !== undefined) {
-      params = params.set('pageNumber', pageNumber);
-      params = params.set('pageSize', pageSize);
-    }
+  getGames(search?: string, pageNumber?: number, pageSize?: number, sort?: string, isDescending?: boolean): Observable<Game[]> {
+  let params = new HttpParams();
 
-    return this.http.get<Game[]>(this.apiUrl, { params });
+  if (search) {
+    params = params.set('Search', search); 
   }
+  if (pageNumber !== undefined && pageSize !== undefined) {
+    params = params.set('PageNumber', pageNumber.toString());
+    params = params.set('PageSize', pageSize.toString());
+  }
+  if (sort) {
+
+    params = params.set('SortBy', sort);
+  }
+  if (isDescending !== undefined) {
+    params = params.set('IsDescending', isDescending.toString());
+  }
+
+  return this.http.get<Game[]>(this.apiUrl, { params }).pipe(
+    tap({
+      next: (data) => console.log('Fetched games:', data),
+      error: (err) => console.error('Error fetching games:', err)
+    })
+  );
+}
   getGameById(id: string): Observable<Game> {
     return this.http.get<Game>(`${this.apiUrl}/${id}`);
   }

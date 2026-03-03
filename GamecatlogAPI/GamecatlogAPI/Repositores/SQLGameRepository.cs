@@ -1,5 +1,6 @@
 ﻿using GamecatalogAPI.Data;
 using GamecatalogAPI.Models.Domain;
+using GamecatalogAPI.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 
@@ -32,23 +33,50 @@ namespace GamecatalogAPI.Repositores
             return existingGame;
         }
 
-        public async Task<List<Game>> GetAllAsync(string? search = null, int pageNumber = 1, int pageSize = 6)
+        public async Task<List<Game>> GetAllAsync(GameQueryParameters queryParameters)
         {
-            pageNumber = pageNumber < 1 ? 1 : pageNumber;
-            pageSize = pageSize < 1 ? 6 : pageSize;
+            // 1. Validation Logic
+            var pageNumber = queryParameters.PageNumber < 1 ? 1 : queryParameters.PageNumber;
+            var pageSize = (queryParameters.PageSize < 1 || queryParameters.PageSize > 20)
+                           ? 6 : queryParameters.PageSize;
+
             var games = dbContext.Game.AsQueryable();
-            if (!string.IsNullOrEmpty(search))
+
+            // 2. Filtering
+            if (!string.IsNullOrEmpty(queryParameters.Search))
             {
-                games = games.Where(x => x.Name.Contains(search) || x.Genre.Contains(search));
+                games = games.Where(x => x.Name.Contains(queryParameters.Search) ||
+                                         x.Genre.Contains(queryParameters.Search));
             }
+
+            // 3. Dynamic Sorting
+            if (!string.IsNullOrEmpty(queryParameters.SortBy))
+            {
+                if (queryParameters.SortBy.Equals("Price", StringComparison.OrdinalIgnoreCase))
+                {
+                    games = queryParameters.IsDescending
+                        ? games.OrderByDescending(x => x.Price)
+                        : games.OrderBy(x => x.Price);
+                }
+                else // Default to Name sorting
+                {
+                    games = queryParameters.IsDescending
+                        ? games.OrderByDescending(x => x.Name)
+                        : games.OrderBy(x => x.Name);
+                }
+            }
+            else
+            {
+                games = games.OrderBy(x => x.Name);
+            }
+
+            // 4. Paging Math
             var skip = (pageNumber - 1) * pageSize;
 
             return await games
-                .OrderBy(x=>x.Name)
                 .Skip(skip)
                 .Take(pageSize)
                 .ToListAsync();
-   
         }
 
         public async Task<Game?> GetByIdAsync(Guid id)

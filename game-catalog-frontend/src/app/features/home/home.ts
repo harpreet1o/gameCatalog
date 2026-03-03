@@ -14,46 +14,64 @@ export class Home implements OnInit {
   private gameService = inject(GameService); 
   private ui = inject(UiService); 
   
-  // games() stores the main list shown in the cards
   games = signal<Game[]>([]);
-  // suggestions() stores the temporary list for the search dropdown
   suggestions = signal<Game[]>([]);
   
+  // State Signals
   currentPage = signal(1);
   pageSize = signal(6);
+  isDescending = signal(false);
+  sortBy = signal('name'); 
+  searchQuery = signal(''); // Added to keep search persistent across pages
 
   ngOnInit() {
     this.fetchGames();
   }
 
-  // Gets data from backend. If search is empty, gets all games.
+  
   fetchGames(search: string = '') {
-    this.gameService.getGames(search, this.currentPage(), this.pageSize()).subscribe({
-      next: (data) => this.games.set(data),
-      error: (err) => console.error('Error fetching games:', err)
+    this.gameService.getGames(search, this.currentPage(), this.pageSize(), this.sortBy(),this.isDescending()).
+    subscribe({
+     
+      next: (data) =>{this.games.set(data); 
+        console.log('Fetched games:', data)
+
+      }, error: (err) => console.error('Error fetching games:', err)
     });
   }
-  goToPage(direction: number) {
-    this.currentPage.update(val => val + direction);
-    this.fetchGames();
-  }
-
-  // Triggered on every keystroke
   onType(value: string) {
+    this.searchQuery.set(value); // Update the global search state
+
     if (value.length < 2) {
       this.suggestions.set([]); 
-      if (value.length === 0) this.fetchGames();
+      if (value.length === 0) {
+        this.currentPage.set(1); // Reset page on clear
+        this.fetchGames();
+      }
       return;
     }
 
-    this.gameService.getGames(value).subscribe({
-      next: (data) =>{
-        // this.games.set(data); use it if all the data wants to be removed here and only the searched data wants to be shown but we want to show the searched data in the dropdown so we use suggestions instead of games.
-         this.suggestions.set(data);
-      }
+    // Suggestions should respect the same sort/page rules for consistency
+    this.gameService.getGames(value, 1, 5, this.sortBy(), this.isDescending()).subscribe({
+      next: (data) => this.suggestions.set(data)
     });
   }
 
+  toggleSort(column: string) {
+    if (this.sortBy() === column) {
+      this.isDescending.update(val => !val);
+    } else {
+      this.sortBy.set(column);
+      this.isDescending.set(false);
+    }
+    this.currentPage.set(1);
+    this.fetchGames();
+  }
+
+  goToPage(direction: number) {
+    this.currentPage.update(val => val + direction);
+    this.fetchGames(); 
+  }
   selectGame(game: Game) {
     this.games.set([game]);    
     this.suggestions.set([]);

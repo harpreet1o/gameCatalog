@@ -1,9 +1,10 @@
 ﻿using GamecatalogAPI.Models.Domain;
+using GamecatalogAPI.Models.DTO;
 namespace GamecatalogAPI.Repositores
 {
     public interface IGamerepository
     {
-        Task<List<Game>> GetAllAsync(string? search = null,int PageNumber = 1, int pageSize = 6);
+        Task<List<Game>> GetAllAsync(GameQueryParameters queryParameters);
 
         Task<Game?>GetByIdAsync(Guid id);
 
