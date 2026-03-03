@@ -18,6 +18,9 @@ export class Home implements OnInit {
   games = signal<Game[]>([]);
   // suggestions() stores the temporary list for the search dropdown
   suggestions = signal<Game[]>([]);
+  
+  currentPage = signal(1);
+  pageSize = signal(6);
 
   ngOnInit() {
     this.fetchGames();
@@ -25,10 +28,14 @@ export class Home implements OnInit {
 
   // Gets data from backend. If search is empty, gets all games.
   fetchGames(search: string = '') {
-    this.gameService.getGames(search).subscribe({
+    this.gameService.getGames(search, this.currentPage(), this.pageSize()).subscribe({
       next: (data) => this.games.set(data),
       error: (err) => console.error('Error fetching games:', err)
     });
+  }
+  goToPage(direction: number) {
+    this.currentPage.update(val => val + direction);
+    this.fetchGames();
   }
 
   // Triggered on every keystroke

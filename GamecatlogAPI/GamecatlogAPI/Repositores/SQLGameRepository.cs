@@ -1,6 +1,7 @@
 ﻿using GamecatalogAPI.Data;
 using GamecatalogAPI.Models.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 namespace GamecatalogAPI.Repositores
 {
@@ -31,16 +32,23 @@ namespace GamecatalogAPI.Repositores
             return existingGame;
         }
 
-        public async Task<List<Game>> GetAllAsync(string? search = null)
+        public async Task<List<Game>> GetAllAsync(string? search = null, int pageNumber = 1, int pageSize = 6)
         {
+            pageNumber = pageNumber < 1 ? 1 : pageNumber;
+            pageSize = pageSize < 1 ? 6 : pageSize;
             var games = dbContext.Game.AsQueryable();
             if (!string.IsNullOrEmpty(search))
             {
                 games = games.Where(x => x.Name.Contains(search) || x.Genre.Contains(search));
-
             }
-            
-            return await games.ToListAsync();
+            var skip = (pageNumber - 1) * pageSize;
+
+            return await games
+                .OrderBy(x=>x.Name)
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
+   
         }
 
         public async Task<Game?> GetByIdAsync(Guid id)

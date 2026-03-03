@@ -14,10 +14,15 @@ export class GameService {
   // we create routes here and don't use async cause we get observable not the promise. 
 
   // we receive an array of games here  
-  getGames(search?: string): Observable<Game[]> {
+  getGames(search?: string, pageNumber?: number, pageSize?: number): Observable<Game[]> {
+    console.log('Fetching games with search:', search, 'page:', pageNumber, 'pageSize:', pageSize);
     let params = new HttpParams();
     if (search) {
       params = params.set('search', search);
+    }
+    if (pageNumber !== undefined && pageSize !== undefined) {
+      params = params.set('pageNumber', pageNumber);
+      params = params.set('pageSize', pageSize);
     }
 
     return this.http.get<Game[]>(this.apiUrl, { params });
