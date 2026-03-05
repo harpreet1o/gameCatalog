@@ -36,6 +36,9 @@ Ensure your connection string in appsettings.json matches your local SQL Server 
 Prepare the Database:
 Open your terminal in the backend folder and run the following commands:
 
+If you want you can use the sql script to get few games setup in the database [sqlscript](./sqlscript)
+
+
 Bash
 # Create the migration (handles the decimal precision fix)
 dotnet ef migrations add InitialMigration
@@ -77,3 +80,4 @@ The application will be available at http://localhost:4200/.
 - Protection against SQL Injection (using EF Core parameterized queries)
 - XSS protection through DTO usage and model validation
 - Authentication secured using JWT tokens
+
