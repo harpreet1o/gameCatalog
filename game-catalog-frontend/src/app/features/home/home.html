@@ -5,10 +5,10 @@
         <span class="input-group-text bg-white border-end-0">🔍</span>
         <input 
           type="text" 
-          #searchInput
+          [(ngModel)]="searchQuery"
+              (keyup.enter)="onEnter()"
           class="form-control border-start-0" 
-          placeholder="Start typing to find a game or genre..."
-          (input)="onType(searchInput.value)">
+          placeholder="Start typing to find a game or genre...">
       </div>
 
       @if (suggestions().length > 0) {
@@ -16,7 +16,7 @@
             style="z-index: 1050; left: 0; padding: 0 12px;">
           @for (s of suggestions(); track s.id){
             <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
-                (click)="selectGame(s); searchInput.value = s.name"
+                (click)="selectGame(s);"
                 style="cursor: pointer;">
               <div>
                 <strong>{{ s.name }}</strong>

@@ -1,8 +1,10 @@
-import { Component, signal, OnInit, inject, effect } from '@angular/core'; 
+import { Component, signal, inject, effect, untracked, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GameService } from '../../core/services/game.service';
 import { UiService } from '../../core/services/ui.service';
 import { Game } from '../../core/models/game.model';
+import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
 	NgbDropdown,
@@ -16,12 +18,14 @@ import { debounceSignal } from '../../core/services/signal-utils';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, NgbDropdown, NgbDropdownToggle, NgbDropdownMenu, NgbDropdownItem, NgbDropdownButtonItem],
+  imports: [RouterLink, FormsModule, NgbDropdown, NgbDropdownToggle, NgbDropdownMenu, NgbDropdownItem, NgbDropdownButtonItem],
   templateUrl: './home.html',
 })
-export class Home implements OnInit {
+export class Home {
   private gameService = inject(GameService); 
   private ui = inject(UiService); 
+  private destroyRef = inject(DestroyRef);
+  private isSelecting = false;
   
   games = signal<Game[]>([]);
   suggestions = signal<Game[]>([]);
@@ -33,71 +37,92 @@ export class Home implements OnInit {
   sortBy = signal('Name'); 
   searchQuery = signal(''); // Added to keep search persistent across pages
   searchDebounced = debounceSignal(this.searchQuery, 500,''); // For debounced search input
+  activeSearch = signal('');
+  reloadTrigger = signal(0); // Forces reload even when activeSearch is already ''
 
-  ngOnInit() {
-    this.fetchGames();
-  }
+  private loadGamesEffect = effect(() => {
+    const page = this.currentPage();
+    const size = this.pageSize();
+    const sort = this.sortBy();
+    const desc = this.isDescending();
+    const search = this.activeSearch();
+    const _ = this.reloadTrigger(); // Reading this signal makes the effect depend on it
 
-  constructor(){
-    effect(() => {
-    const value = this.searchDebounced();
-    if (value.length < 2) {
-      this.suggestions.set([]); 
-      if (value.length === 0) {
-        this.currentPage.set(1); // Reset page on clear
-        this.fetchGames();
-      }
+    this.gameService.getGames(search, page, size, sort, desc)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => this.games.set(data),
+        error: () => this.ui.showError('Error', 'Could not load games.')
+      });
+  });
+
+  private searchSuggestionsEffect = effect(() => { // the effect can't have another signal so using untracked 
+    const input = this.searchDebounced();
+    const rawValue = untracked(() => this.searchQuery());
+    if(this.isSelecting){
+      this.isSelecting = false;
       return;
     }
-    this.gameService.getGames(value, 1, 5, this.sortBy(), this.isDescending()).subscribe({
-      next: (data) => {
-        // console.log('Search suggestions:', data);
-        this.suggestions.set(data)
-      }
-    });
-  })
-  }
-  
-  fetchGames() {
-    this.gameService.getGames(this.searchQuery(), this.currentPage(), this.pageSize(), this.sortBy(),this.isDescending()).
-    subscribe({
-     
-      next: (data) =>{this.games.set(data); 
-        console.log('Fetched games:', data)
+    if (!rawValue) {
+      this.suggestions.set([]);
+      console.log("empty search, resetting to first page");
+      this.clearSearch();
+      return;
+    }
 
-      }, error: (err) => console.error('Error fetching games:', err)
-    });
+    // Ignore single character searches
+    if (rawValue.length < 2) {
+      return;
+    }
+    this.gameService.getGames(input, 1, 5, this.sortBy(), this.isDescending())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.suggestions.set(data)
+        }
+      });
+  });
+ 
+  onEnter() {
+    this.activeSearch.set(this.searchQuery());
+    this.currentPage.set(1); // Reset to first page on new search
+    this.suggestions.set([]); // Clear suggestions on search
   }
-  onType(value: string) {
-    this.searchQuery.set(value); // Update the global search state
 
-  }
-
-// This function is called when new sort column is selected and resetting to first page and also always ascending 
-  setSortColumn(column: string) {
-  if (this.sortBy() !== column) {
-    this.sortBy.set(column);
-    this.isDescending.set(false);
+  clearSearch() {
+    this.searchQuery.set('');
+    this.activeSearch.set('');
     this.currentPage.set(1);
-    this.fetchGames();
+    this.reloadTrigger.update(v => v + 1); // Forces a fresh reload
   }
-}
 
-toggleDirection() {
-  this.isDescending.update(val => !val);
-  this.currentPage.set(1);
-  this.fetchGames();
-}
+  // This function is called when new sort column is selected and resetting to first page and also always ascending 
+  setSortColumn(column: string) {
+    if (this.sortBy() !== column) {
+      this.sortBy.set(column);
+      this.isDescending.set(false);
+      this.currentPage.set(1);
+    }
+  }
+
+  toggleDirection() {
+    this.isDescending.update(val => !val);
+    this.currentPage.set(1);
+  }
 
   goToPage(direction: number) {
     this.currentPage.update(val => val + direction);
-    this.fetchGames(); 
+    console.log("current page: ", this.currentPage())
   }
+
   selectGame(game: Game) {
     this.games.set([game]);    
+    this.searchQuery.set(game.name);
     this.suggestions.set([]);
+    this.isSelecting = true; // To prevent the bug causing the suggestion to reappear after selecting a game it appears again
   } 
-// using the sweetaleart2 here 
+
+  // using the sweetaleart2 here 
   deleteGame(id: string) {
     this.ui.confirmDelete().then((result) => {
       if (result.isConfirmed) {
