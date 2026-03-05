@@ -33,48 +33,30 @@
   <div class="row mb-4">
     <div class="col-md-6 offset-md-3 d-flex justify-content-between align-items-center">
       <h5 class="text-muted mb-0">Catalog</h5>
-      
-    <div class="d-flex align-items-center gap-2">
-  <div ngbDropdown class="d-inline-block">
-    <button 
-      type="button"
-      class="btn btn-sm btn-outline-secondary shadow-sm"
-      ngbDropdownToggle>
-      Sort by: <strong>{{ sortBy() }}</strong>
-    </button>
-
-    <div ngbDropdownMenu class="shadow border-0">
-      <button
-        ngbDropdownItem
-        class="d-flex justify-content-between align-items-center"
-        [class.active]="sortBy() === 'Name'"
-        (click)="toggleSort('Name')">
-        Name
-        @if (sortBy() === 'Name') { <strong class="ms-2">✓</strong> }
-      </button>
-
-      <button
-        ngbDropdownItem
-        class="d-flex justify-content-between align-items-center"
-        [class.active]="sortBy() === 'Price'"
-        (click)="toggleSort('Price')">
-        Price
-        @if (sortBy() === 'Price') { <strong class="ms-2">✓</strong> }
-      </button>
-    </div>
-  </div>
+  <!-- used code from https://ng-bootstrap.github.io/#/components/dropdown/examples     -->
+  <div class="d-flex align-items-center gap-2">
+	<div class="col">
+		<div ngbDropdown class="d-inline-block">
+			<button type="button" class="btn btn-outline-primary" id="dropdownBasic1" ngbDropdownToggle>
+		      Sort by: <strong>{{ sortBy() }}</strong>
+			</button>
+			<div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+				<button ngbDropdownItem (click)="setSortColumn('Name')">Name</button>
+				<button ngbDropdownItem (click)="setSortColumn('Price')">Price</button>
+			</div>
+		</div>	</div>
 
   <button 
     type="button"
     class="btn btn-sm btn-outline-secondary shadow-sm" 
-    (click)="toggleSort(sortBy())">
+    (click)="toggleDirection()">
     @if (isDescending()) {
       <span class="fw-bold">Desc ↓</span>
     } @else {
       <span class="fw-bold">Asc ↑</span>
     }
   </button>
-</div>
+
     </div>
   </div>
 

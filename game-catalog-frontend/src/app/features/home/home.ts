@@ -1,13 +1,22 @@
-import { Component, signal, OnInit, inject } from '@angular/core'; 
+import { Component, signal, OnInit, inject, effect } from '@angular/core'; 
 import { RouterLink } from '@angular/router';
 import { GameService } from '../../core/services/game.service';
 import { UiService } from '../../core/services/ui.service';
 import { Game } from '../../core/models/game.model';
 
+import {
+	NgbDropdown,
+	NgbDropdownToggle,
+	NgbDropdownMenu,
+	NgbDropdownItem,
+	NgbDropdownButtonItem,
+} from '@ng-bootstrap/ng-bootstrap/dropdown';
+import { debounceSignal } from '../../core/services/signal-utils';
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, NgbDropdown, NgbDropdownToggle, NgbDropdownMenu, NgbDropdownItem, NgbDropdownButtonItem],
   templateUrl: './home.html',
 })
 export class Home implements OnInit {
@@ -21,16 +30,36 @@ export class Home implements OnInit {
   currentPage = signal(1);
   pageSize = signal(6);
   isDescending = signal(false);
-  sortBy = signal('name'); 
+  sortBy = signal('Name'); 
   searchQuery = signal(''); // Added to keep search persistent across pages
+  searchDebounced = debounceSignal(this.searchQuery, 500,''); // For debounced search input
 
   ngOnInit() {
     this.fetchGames();
   }
 
+  constructor(){
+    effect(() => {
+    const value = this.searchDebounced();
+    if (value.length < 2) {
+      this.suggestions.set([]); 
+      if (value.length === 0) {
+        this.currentPage.set(1); // Reset page on clear
+        this.fetchGames();
+      }
+      return;
+    }
+    this.gameService.getGames(value, 1, 5, this.sortBy(), this.isDescending()).subscribe({
+      next: (data) => {
+        // console.log('Search suggestions:', data);
+        this.suggestions.set(data)
+      }
+    });
+  })
+  }
   
-  fetchGames(search: string = '') {
-    this.gameService.getGames(search, this.currentPage(), this.pageSize(), this.sortBy(),this.isDescending()).
+  fetchGames() {
+    this.gameService.getGames(this.searchQuery(), this.currentPage(), this.pageSize(), this.sortBy(),this.isDescending()).
     subscribe({
      
       next: (data) =>{this.games.set(data); 
@@ -42,31 +71,23 @@ export class Home implements OnInit {
   onType(value: string) {
     this.searchQuery.set(value); // Update the global search state
 
-    if (value.length < 2) {
-      this.suggestions.set([]); 
-      if (value.length === 0) {
-        this.currentPage.set(1); // Reset page on clear
-        this.fetchGames();
-      }
-      return;
-    }
-
-    // Suggestions should respect the same sort/page rules for consistency
-    this.gameService.getGames(value, 1, 5, this.sortBy(), this.isDescending()).subscribe({
-      next: (data) => this.suggestions.set(data)
-    });
   }
 
-  toggleSort(column: string) {
-    if (this.sortBy() === column) {
-      this.isDescending.update(val => !val);
-    } else {
-      this.sortBy.set(column);
-      this.isDescending.set(false);
-    }
+// This function is called when new sort column is selected and resetting to first page and also always ascending 
+  setSortColumn(column: string) {
+  if (this.sortBy() !== column) {
+    this.sortBy.set(column);
+    this.isDescending.set(false);
     this.currentPage.set(1);
     this.fetchGames();
   }
+}
+
+toggleDirection() {
+  this.isDescending.update(val => !val);
+  this.currentPage.set(1);
+  this.fetchGames();
+}
 
   goToPage(direction: number) {
     this.currentPage.update(val => val + direction);
@@ -76,7 +97,7 @@ export class Home implements OnInit {
     this.games.set([game]);    
     this.suggestions.set([]);
   } 
-
+// using the sweetaleart2 here 
   deleteGame(id: string) {
     this.ui.confirmDelete().then((result) => {
       if (result.isConfirmed) {

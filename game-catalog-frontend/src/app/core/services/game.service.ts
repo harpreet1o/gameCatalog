@@ -12,7 +12,6 @@ export class GameService {
   private readonly apiUrl = 'https://localhost:7187/api/Games';
 
   // we create routes here and don't use async cause we get observable not the promise. 
-
   // we receive an array of games here  
   getGames(search?: string, pageNumber?: number, pageSize?: number, sort?: string, isDescending?: boolean): Observable<Game[]> {
   let params = new HttpParams();
